@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>Proj-Lytics</title>
+<link href="dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="dist/js/jquery/1.11.1/jquery.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="dist/js/bootstrap.min.js"></script>
+<script src="js/Chart.min.js"></script>
+<script src="js/color-scheme.min.js"></script>
+<style>
+.problem {
+	text-align: left;
+	font-size: .7em;
+	font-weight: bold;
+}
+
+.table-nonfluid {
+   width: auto !important;
+}
+
+.enclose {
+	position: fixed;
+	background-color: #dddddd;
+	border-radius:3px;
+	padding: 3px;
+	bottom: 0px;
+	margin-left: -20px;
+}
+.donut-inner {
+   margin-top: -150px;
+   margin-bottom: 150px;
+}
+.donut-inner h5 {
+   margin-bottom: 5px;
+   margin-top: 0;
+}
+.donut-inner span {
+   font-size: 12px;
+}
+.issuexpander { cursor: pointer; cursor: hand; color:gray; align:middle;}
+.issuerow, .issuegroupexpander { cursor: pointer; cursor: hand; color:gray; align:middle;}
+.dropdown-menu li {cursor: pointer; cursor: hand; }
+
+td .number  { align:center;}
+</style>
+</head>
+<body>
+	<div class="container">
+		<h1>CODE REPORT</h1>
+		<section id="sect_overview_chart">
+		   <div class="page-header">
+		   <h3>Summary</h3>
+		   </div>
+		   <table>
+		   <tr>
+		   <td><canvas style="margin-right:50px" id="chart_comp" width="350px" height="400px"></canvas></td>
+		   <td><canvas style="margin-right:50px"  id="chart_cov" width="350px" height="400px"/></td>
+		   <td><canvas id="chart_misra" width="350px" height="400px"></canvas></td>
+		   </tr>
+		   <tr>
+		   <td colspan="3"><canvas id="chart_size" height="200px"></canvas>
+		   <canvas id="chart_stats" height="200px"></canvas></td>
+		   </tr>
+		   </table>
+		</section>
+
+		<section id="sect_components">
+			<div class="page-header">
+			<h3>Issues</h3>
+			</div>
+			
+			<div class="dropdown" style="margin-bottom:15px">
+			  <button id="dLabel" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				Filter 
+				<span class="caret"></span>
+			  </button>
+			  <ul class="dropdown-menu" aria-labelledby="dLabel">
+			  </ul>
+			</div>
+
+			<table width="100%" class="table-bordered table-condensed table-responsive" id="comps">
+				<thead>
+					<td></td>
+					<td>File</td>
+					<td width="70px">Compiler</td>
+					<td width="70px">Coverity</td>
+					<td width="70px">L7</td>	
+					<td width="70px">L8</td>					
+				</thead>
+			</table>
+		</section>
+
+		<p class="enclose problem">By Oliver Vinn</p>
+
+        <br/>
+        <br/>
+        <br/>
+	</div>
+	<script src="js/index.app.js"></script>
+	<script>
+		Application("metrics.json");
+	</script>
+</body>
+</html>
