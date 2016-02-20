@@ -17,13 +17,13 @@ import clutil
 
 class SourceModel:
     '''
-	Container for a set of source files
-	'''
+    Container for a set of source files
+    '''
     def __init__(self, strip_paths=None):
-	    '''
-		Args:
-			strip_paths (list(str))	- List of strings to remove from start of file path
-		'''
+        '''
+        Args:
+            strip_paths (list(str))    - List of strings to remove from start of file path
+        '''
         self.items = {}
         self.item_lookup = defaultdict(list)
         self.groups = []
@@ -32,8 +32,8 @@ class SourceModel:
 
     def add_group(self, name, matches):
         '''
-		Defines a new source grouping rule
-		
+        Defines a new source grouping rule
+        
         Args:
             name (str) - display name
             matches (list) - regex strings to match against
@@ -41,31 +41,31 @@ class SourceModel:
         self.group.append({'rule': name, 'component' : matches})
 
     def add(self, item):
-	    '''
-		Adds new item to the collection
-		
-		Args:
-			item (SourceItem) - Source item (file) to add to the collection
-		'''
-		# Strip string from path
+        '''
+        Adds new item to the collection
+        
+        Args:
+            item (SourceItem) - Source item (file) to add to the collection
+        '''
+        # Strip string from path
         for i in self.strip_paths:
             if i and item.path.startswith(i):
                 item.path = item.path[len(i):]
-		# General collection
+        # General collection
         self.items[item.path] = item
-		# Add for faster lookup in large collections
+        # Add for faster lookup in large collections
         self.item_lookup[item.path.split('/')[-1]].append(item)
 
     def getitem(self, path):
-		'''
-		Gets the requested source item
-		
-		Args:
-			path - full filename of a file to retrieve
-			
-		Returns:
-			SourceItem if found otherwise None
-		'''
+        '''
+        Gets the requested source item
+        
+        Args:
+            path - full filename of a file to retrieve
+            
+        Returns:
+            SourceItem if found otherwise None
+        '''
         name = path.split('/')[-1]
         if name in self.item_lookup:
             subs = self.item_lookup[name]
@@ -75,27 +75,27 @@ class SourceModel:
         return None
 
 class SourceItem:
-	'''
-	Describes a source files quality indicators
-	'''
+    '''
+    Describes a source files quality indicators
+    '''
     def __init__(self, path=None, name=None, component=None, module=None):
-		'''
-		Args:
-			path (str) - full filename
-			name (str) - short name
-			component (str) - optional direct grouping attribute
-			module (str) - optional direct secondary grouping attribute
-		'''
-		# File attributes
+        '''
+        Args:
+            path (str) - full filename
+            name (str) - short name
+            component (str) - optional direct grouping attribute
+            module (str) - optional direct secondary grouping attribute
+        '''
+        # File attributes
         self.path = path
         self.name = name
         self.component = component
         self.module = module
-		# Quality attributes
+        # Quality attributes
         self.compiler_issues = []
         self.coverity_issues = []
         self.misra_issues = defaultdict(list)
-		# Computes factors
+        # Computes factors
         if os.path.exists(path):
             self.size = clutil.file_source_size(path)
             self.conditions = clutil.file_condition_cnt(path)
@@ -108,44 +108,44 @@ class SourceItem:
             
     def __repr__(self):
         return "issues %d %d %d" %(len(self.compiler_issues), 
-		                           len(self.coverity_issues),
-								   len(self.misra_issues))
+                                   len(self.coverity_issues),
+                                   len(self.misra_issues))
 
 
 def mixin_dependencies(source_model, matches):
     '''
-	For a given list of files that represent unique source file outcomes
-	generates a unique fingerprint for comparison to determine true number
-	of compile outcomes.
-	
+    For a given list of files that represent unique source file outcomes
+    generates a unique fingerprint for comparison to determine true number
+    of compile outcomes.
+    
     Args:
         source_model (SourceModel) - source model description
         matches (list) - 
     '''
-	for d in source_model:
-		for l_file in matches:
-			name = os.path.basename(d['name'])
-			l_name = os.path.basename(l_file)
-			l_name = ".".join(l_name.split(".")[:-2])  # .o.lst
-			if 'fingerprints' in d:
-				if l_name == name and d['component'] in l_file and d['module'] in l_file:
-					p = clutil.fingerprint_file(l_file)
-					if p in d['fingerprints']:
-						d['fingerprints'][p].append(l_file)
-					else:
-						d['fingerprints'][p] = [ l_file ]
-					matches.remove(l_file)
-					sys.stderr.write("Finished " + l_file + "\n")
+    for d in source_model:
+        for l_file in matches:
+            name = os.path.basename(d['name'])
+            l_name = os.path.basename(l_file)
+            l_name = ".".join(l_name.split(".")[:-2])  # .o.lst
+            if 'fingerprints' in d:
+                if l_name == name and d['component'] in l_file and d['module'] in l_file:
+                    p = clutil.fingerprint_file(l_file)
+                    if p in d['fingerprints']:
+                        d['fingerprints'][p].append(l_file)
+                    else:
+                        d['fingerprints'][p] = [ l_file ]
+                    matches.remove(l_file)
+                    sys.stderr.write("Finished " + l_file + "\n")
 
-					for m in d['fingerprints'].values():
-						lines = open(m[0]).readlines()
-						for l in lines:
-							if l.startswith("#line 1 "):
-								d['depends-on'].append(l.strip()[9:-1])
-					d['depends-on'] = list(set(d['depends-on']))
-	return source_model
+                    for m in d['fingerprints'].values():
+                        lines = open(m[0]).readlines()
+                        for l in lines:
+                            if l.startswith("#line 1 "):
+                                d['depends-on'].append(l.strip()[9:-1])
+                    d['depends-on'] = list(set(d['depends-on']))
+    return source_model
 
-	
+    
 def mixin_compiler_warnings(source_model, warnings):
     '''
     Merge filesystem description and compiler warning data
@@ -189,11 +189,11 @@ def mixin_coverity_warnings(source_model, warnings):
 
 
 def mixin_qac_warnings(source_model, files):
-	'''
+    '''
     Args:
         source_model (SourceModel) - source model description
         files (list) - warnings files to scan for issues and merge into model
-	'''
+    '''
     wr = re.compile('(.*)\\((.*)\\) \\+\\+ WARNING \\+\\+: <=([7-8])=(.*)')
     sys.stderr.write("Found %s files \n" % len(files))
     for f in files:
@@ -212,35 +212,35 @@ def mixin_qac_warnings(source_model, files):
 
 def get_model_desc(jenkins_url, jenkins_job, 
                    coverity_url, coverity_project, coverity_stream, coverity_map, user, password,
-				   misra_file_search_path, misra_file_extension,
-				   strip_paths,
-				   include_jenkins=True,
-				   include_coveritry=True):
+                   misra_file_search_path, misra_file_extension,
+                   strip_paths,
+                   include_jenkins=True,
+                   include_coveritry=True):
     '''
     Gets a rich description of the cm location agreegating file sytem and analytic sources.
-	
-	Args:
-		jenkins_url (str)      - base url for instance
-		jenkins_job (str)      - name of job
-		coverity_url (str)     - base url for instance
-		coverity_project (str) - name of coverity project
-		coverity_stream (str)  - name of coverity stream in project 
-		coverity_map (str)     - name of coverity component map
-		user (str)             - user to acccess coverity 
-		password (str)         - users password
-	
-	Returns:
-		Source Model
+    
+    Args:
+        jenkins_url (str)      - base url for instance
+        jenkins_job (str)      - name of job
+        coverity_url (str)     - base url for instance
+        coverity_project (str) - name of coverity project
+        coverity_stream (str)  - name of coverity stream in project 
+        coverity_map (str)     - name of coverity component map
+        user (str)             - user to acccess coverity 
+        password (str)         - users password
+    
+    Returns:
+        Source Model
 
-	Limitations:
-		Minimal (no) error protection for server being down.
+    Limitations:
+        Minimal (no) error protection for server being down.
     '''
     from datetime import datetime
 
     # Build local source tree (list paths to be stripped)
     model = SourceModel(strip_paths)
     
-	sys.stderr.write("Scanning local QAC data\n")
+    sys.stderr.write("Scanning local QAC data\n")
     a = datetime.now()
     model = mixin_qac_warnings(model, clutil.find_files(misra_file_search_path, misra_file_extension))
 
@@ -258,8 +258,8 @@ def get_model_desc(jenkins_url, jenkins_job,
         a = datetime.now()
         c = Coverity(coverity_url, user, password)
         model.groups = c.fetch_component_map(coverity_map)
-		for k in groups:
-			k['rule'] = re.compile(k['rule'])
+        for k in groups:
+            k['rule'] = re.compile(k['rule'])
         model.group_stats = c.fetch_project_stats(coverity_project, model.groups)
         cd = c.fetch_outstanding_stream_defects(coverity_project, coverity_stream)
         sys.stderr.write("Total: %d\n" %(len(cd)))
@@ -280,9 +280,9 @@ def get_model_desc(jenkins_url, jenkins_job,
     
     model.groups.append({'component' : 'OTHER', 'rule' : re.compile('.*')})
     return model
-	
+    
 def model_to_jsonable(model):
-	items = defaultdict(list)
+    items = defaultdict(list)
     for d,v in model.items.items():
         for k in groups:
             if k['rule'].match(d):
@@ -295,6 +295,6 @@ def model_to_jsonable(model):
     # Sorted order
     names = sorted(items.keys())
     out = [{'name': x, 'files' : [y.__dict__ for y in items[x]]} for x in names]
-	return {'data': out, 'stats' : model.group_stats }
+    return {'data': out, 'stats' : model.group_stats }
 
  
