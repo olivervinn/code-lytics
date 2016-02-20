@@ -1,4 +1,4 @@
-#Proj-Lytics
+#Code-Lytics
 
 Set of scripts to aggregate information from Jenkins, Coverity and QAC - mergining data into a single source for presenting with a simple web 
 interface.

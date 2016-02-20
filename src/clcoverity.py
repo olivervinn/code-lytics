@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Copyright Oliver Vinn 2015
-# github.com/ovinn/proj-lytics
+# github.com/ovinn/code-lytics
 
 from suds.client import Client
 from suds.wsse import *

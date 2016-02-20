@@ -180,3 +180,39 @@ rect {
   stroke: #000;
   shape-rendering: crispEdges;
 }
+
+
+.problem {
+    text-align: left;
+    font-size: .7em;
+    font-weight: bold;
+}
+
+.table-nonfluid {
+   width: auto !important;
+}
+
+.enclose {
+    position: fixed;
+    background-color: #dddddd;
+    border-radius:3px;
+    padding: 3px;
+    bottom: 0px;
+    margin-left: -20px;
+}
+.donut-inner {
+   margin-top: -150px;
+   margin-bottom: 150px;
+}
+.donut-inner h5 {
+   margin-bottom: 5px;
+   margin-top: 0;
+}
+.donut-inner span {
+   font-size: 12px;
+}
+.issuexpander { cursor: pointer; cursor: hand; color:gray; align:middle;}
+.issuerow, .issuegroupexpander { cursor: pointer; cursor: hand; color:gray; align:middle;}
+.dropdown-menu li {cursor: pointer; cursor: hand; }
+
+td .number  { align:center;}
