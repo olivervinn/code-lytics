@@ -1,13 +1,16 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+"""
+Merges data sources into a code-lytics dataset
 
-# Copyright Oliver Vinn 2015
-# github.com/ovinn/code-lytics
+Autor:
+    Copyright Oliver Vinn 2015
+Repo:
+    github.com/ovinn/code-lytics
+"""
 
 import os
 import sys
-import json
-import urllib
 import re
 from collections import defaultdict
 
@@ -16,14 +19,14 @@ from clcoverity import Coverity
 import clutil
 
 class SourceModel:
-    '''
+    """
     Container for a set of source files
-    '''
+    """
     def __init__(self, strip_paths=None):
-        '''
+        """
         Args:
             strip_paths (list(str))    - List of strings to remove from start of file path
-        '''
+        """
         self.items = {}
         self.item_lookup = defaultdict(list)
         self.groups = []
@@ -31,22 +34,22 @@ class SourceModel:
         self.strip_paths = strip_paths
 
     def add_group(self, name, matches):
-        '''
+        """
         Defines a new source grouping rule
-        
+
         Args:
             name (str) - display name
             matches (list) - regex strings to match against
-        '''
-        self.group.append({'rule': name, 'component' : matches})
+        """
+        self.groups.append({'rule': name, 'component' : matches})
 
     def add(self, item):
-        '''
+        """
         Adds new item to the collection
-        
+
         Args:
             item (SourceItem) - Source item (file) to add to the collection
-        '''
+        """
         # Strip string from path
         for i in self.strip_paths:
             if i and item.path.startswith(i):
@@ -57,15 +60,15 @@ class SourceModel:
         self.item_lookup[item.path.split('/')[-1]].append(item)
 
     def getitem(self, path):
-        '''
+        """
         Gets the requested source item
-        
+
         Args:
             path - full filename of a file to retrieve
-            
+
         Returns:
             SourceItem if found otherwise None
-        '''
+        """
         name = path.split('/')[-1]
         if name in self.item_lookup:
             subs = self.item_lookup[name]
@@ -75,17 +78,17 @@ class SourceModel:
         return None
 
 class SourceItem:
-    '''
+    """
     Describes a source files quality indicators
-    '''
+    """
     def __init__(self, path=None, name=None, component=None, module=None):
-        '''
+        """
         Args:
             path (str) - full filename
             name (str) - short name
             component (str) - optional direct grouping attribute
             module (str) - optional direct secondary grouping attribute
-        '''
+        """
         # File attributes
         self.path = path
         self.name = name
@@ -105,9 +108,9 @@ class SourceItem:
         if path.endswith(".c"):
             self.fingerprints = {}
             self.dependson = []
-            
+
     def __repr__(self):
-        return "issues %d %d %d" %(len(self.compiler_issues), 
+        return "issues %d %d %d" %(len(self.compiler_issues),
                                    len(self.coverity_issues),
                                    len(self.misra_issues))
 
@@ -117,35 +120,34 @@ def mixin_dependencies(source_model, matches):
     For a given list of files that represent unique source file outcomes
     generates a unique fingerprint for comparison to determine true number
     of compile outcomes.
-    
+
     Args:
         source_model (SourceModel) - source model description
-        matches (list) - 
+        matches (list) -
     '''
-    for d in source_model:
+    for descriptor in source_model:
         for l_file in matches:
-            name = os.path.basename(d['name'])
+            name = os.path.basename(descriptor['name'])
             l_name = os.path.basename(l_file)
             l_name = ".".join(l_name.split(".")[:-2])  # .o.lst
-            if 'fingerprints' in d:
-                if l_name == name and d['component'] in l_file and d['module'] in l_file:
+            if 'fingerprints' in descriptor:
+                if l_name == name and descriptor['component'] in l_file and descriptor['module'] in l_file:
                     p = clutil.fingerprint_file(l_file)
-                    if p in d['fingerprints']:
-                        d['fingerprints'][p].append(l_file)
+                    if p in descriptor['fingerprints']:
+                        descriptor['fingerprints'][p].append(l_file)
                     else:
-                        d['fingerprints'][p] = [ l_file ]
+                        descriptor['fingerprints'][p] = [l_file]
                     matches.remove(l_file)
                     sys.stderr.write("Finished " + l_file + "\n")
 
-                    for m in d['fingerprints'].values():
+                    for m in descriptor['fingerprints'].values():
                         lines = open(m[0]).readlines()
                         for l in lines:
                             if l.startswith("#line 1 "):
-                                d['depends-on'].append(l.strip()[9:-1])
-                    d['depends-on'] = list(set(d['depends-on']))
+                                descriptor['depends-on'].append(l.strip()[9:-1])
+                    descriptor['depends-on'] = list(set(descriptor['depends-on']))
     return source_model
 
-    
 def mixin_compiler_warnings(source_model, warnings):
     '''
     Merge filesystem description and compiler warning data
@@ -210,7 +212,7 @@ def mixin_qac_warnings(source_model, files):
                                                                     'detail' : warning_match.group(4)})
     return source_model
 
-def get_model_desc(jenkins_url, jenkins_job, 
+def get_model_desc(jenkins_url, jenkins_job,
                    coverity_url, coverity_project, coverity_stream, coverity_map, user, password,
                    misra_file_search_path, misra_file_extension,
                    strip_paths,
@@ -218,17 +220,17 @@ def get_model_desc(jenkins_url, jenkins_job,
                    include_coveritry=True):
     '''
     Gets a rich description of the cm location agreegating file sytem and analytic sources.
-    
+
     Args:
         jenkins_url (str)      - base url for instance
         jenkins_job (str)      - name of job
         coverity_url (str)     - base url for instance
         coverity_project (str) - name of coverity project
-        coverity_stream (str)  - name of coverity stream in project 
+        coverity_stream (str)  - name of coverity stream in project
         coverity_map (str)     - name of coverity component map
-        user (str)             - user to acccess coverity 
+        user (str)             - user to acccess coverity
         password (str)         - users password
-    
+
     Returns:
         Source Model
 
@@ -239,7 +241,7 @@ def get_model_desc(jenkins_url, jenkins_job,
 
     # Build local source tree (list paths to be stripped)
     model = SourceModel(strip_paths)
-    
+
     sys.stderr.write("Scanning local QAC data\n")
     a = datetime.now()
     model = mixin_qac_warnings(model, clutil.find_files(misra_file_search_path, misra_file_extension))
@@ -251,50 +253,53 @@ def get_model_desc(jenkins_url, jenkins_job,
         j = Jenkins(jenkins_url)
         jd = j.fetch_latest_warnings(jenkins_job)
         sys.stderr.write("Total: %d\n" %(len(jd)))
-        
+
     if include_coveritry:
         b = datetime.now() - a
         sys.stderr.write(str(b) + "Fetching Coverity Data from Server\n")
         a = datetime.now()
         c = Coverity(coverity_url, user, password)
         model.groups = c.fetch_component_map(coverity_map)
-        for k in groups:
+        for k in model.groups:
             k['rule'] = re.compile(k['rule'])
         model.group_stats = c.fetch_project_stats(coverity_project, model.groups)
-        cd = c.fetch_outstanding_stream_defects(coverity_project, coverity_stream)
-        sys.stderr.write("Total: %d\n" %(len(cd)))
-        
+        open_issues = c.fetch_open_defects(coverity_project, coverity_stream)
+        sys.stderr.write("Total: %d\n" %(len(open_issues)))
+
     if include_jenkins:
         b = datetime.now() - a
         sys.stderr.write(str(b) + "Merging Compiler Data\n")
         a = datetime.now()
         model = mixin_compiler_warnings(model, jd)
-    
+
     if include_coveritry:
         b = datetime.now() - a
-        sys.stderr.write(str(b) +  "Merging Coverity Data\n")
+        sys.stderr.write(str(b) + "Merging Coverity Data\n")
         a = datetime.now()
-        model = mixin_coverity_warnings(model, cd)
+        model = mixin_coverity_warnings(model, open_issues)
         b = datetime.now() - a
         sys.stderr.write(str(b))
-    
+
     model.groups.append({'component' : 'OTHER', 'rule' : re.compile('.*')})
     return model
-    
+
 def model_to_jsonable(model):
+    """
+    Convert to a json compatible data form
+    """
     items = defaultdict(list)
-    for d,v in model.items.items():
-        for k in groups:
+    for d, v in model.items.items():
+        for k in model.groups:
             if k['rule'].match(d):
                 items[k['component']].append(v)
-                break;
+                break
     # Add empty component groups
-    for i in groups:
+    for i in model.groups:
         if i['component'] not in items.keys():
             items[i['component']] = []
     # Sorted order
     names = sorted(items.keys())
     out = [{'name': x, 'files' : [y.__dict__ for y in items[x]]} for x in names]
-    return {'data': out, 'stats' : model.group_stats }
+    return {'data': out, 'stats' : model.group_stats}
 
  
