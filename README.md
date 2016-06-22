@@ -3,7 +3,8 @@
 Set of scripts to aggregate information from Jenkins, Coverity and QAC - mergining data into a single source for presenting with a simple web 
 interface.
 
-![](https://raw.github.com/ovinn/proj-lytics/master/img/example.png)
+![](https://github.com/ovinn/code-lytics/raw/master/img/example.png)
+
 
 # Details
 
